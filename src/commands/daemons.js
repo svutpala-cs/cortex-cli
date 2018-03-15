@@ -44,15 +44,17 @@ module.exports.UpdateStackCommand = class {
 
 function execRancher(args) {
     // using rancher cli: rancher up -d -f <path to/docker-compose.yml> -s <stack name>
-  //
+  
     // https://github.com/rancher/rancher-compose/releases/tag/v0.12.5
     const exec_file = (process.platform === "win32") ? 'rancher-compose.exe' : 'rancher-compose'
     //const cmd = path.join(__dirname, '..', '..', 'scripts', exec_file)
     const cmd = exec_file
     const r = spawnSync(cmd, args) 
 
-    if (r.status === 0) { printSuccess(r.output.toString('utf8')) }
-    else                { printError(r.output.toString('utf8')) }
+    if (r.status === 0)    printSuccess(r.output.toString('utf8')) 
+    else if (r.status > 0) printError(r.output.toString('utf8')) 
+    else if (r.error)      printError(r.error.toString('utf8')) 
+    else                   throw new Error("Request failed for unknown reason! :-(") 
     return r
 }
 
