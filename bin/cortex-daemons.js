@@ -27,12 +27,12 @@ program.description('Manage service daemons');
 
 // Generate Project
 program
-    .command('update <file>')
+    .command('update <file> <stack name>')
     .description('Update a service stack')
     .option('--profile [profile]', 'The profile to use')
-    .action((file, options) => {
+    .action((file, stackName, options) => {
         try {
-            new UpdateStackCommand(program).execute(file, options);
+            new UpdateStackCommand(program).execute(file, stackName, options);
             processed = true;
         }
         catch (err) {

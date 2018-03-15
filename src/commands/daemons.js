@@ -27,12 +27,14 @@ module.exports.UpdateStackCommand = class {
       this.program = program
     }
 
-    execute(file, options) {
+    execute(file, stackName, options) {
+      const profile = loadProfile(options.profile);
       const args = [
         '--url', process.env.RANCHER_URL,
         '--access-key', process.env.RANCHER_ACCESS_KEY,
         '--secret-key', process.env.RANCHER_SECRET_KEY,
         '-f', file, 
+        '-p', profile.account + '-' + stackName,
         'up', '-d',
       ]
       execRancher(args)
