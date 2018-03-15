@@ -20,6 +20,7 @@ const debug = require('debug')('cortex:cli');
 const { loadProfile } = require('../config');
 const { printSuccess, printError } = require('./utils');
 const { spawnSync }  = require('child_process');
+const { getSecret } = require('../client/secrets');
 
 module.exports.UpdateStackCommand = class {
 
@@ -29,15 +30,23 @@ module.exports.UpdateStackCommand = class {
 
     execute(file, stackName, options) {
       const profile = loadProfile(options.profile);
-      const args = [
-        '--url', process.env.RANCHER_URL,
-        '--access-key', process.env.RANCHER_ACCESS_KEY,
-        '--secret-key', process.env.RANCHER_SECRET_KEY,
-        '-f', file, 
-        '-p', profile.account + '-' + stackName,
-        'up', '-d',
-      ]
-      execRancher(args)
+      getSecret(profile.token, profile.url, 'rancher')
+        .then(resp => {
+          const args = this._buildArgs(profile.account, file, stackName, resp.message)
+          execRancher(args)
+        })
+        .catch(err => printError(err))
+    }
+
+    _buildArgs(account, file, stackName, rancherConf) {
+          return [
+            '--url', rancherConf.url,
+            '--access-key', rancherConf.accessKey,
+            '--secret-key', rancherConf.secretKey,
+            '-f', file, 
+            '-p', account + '-' + stackName,
+            'up', '-d',
+          ]
     }
 }
 
