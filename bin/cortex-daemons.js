@@ -23,12 +23,12 @@ const {
 } = require('../src/commands/daemons');
 
 let processed = false;
-program.description('Manage service daemons');
+program.description('Manage long-running services (daemons). This command requires the installation or "rancher-compose".');
 
 // Generate Project
 program
     .command('update <file> <stack name>')
-    .description('Update a service stack')
+    .description('Update a long-running service stack.')
     .option('--profile [profile]', 'The profile to use')
     .action((file, stackName, options) => {
         try {
