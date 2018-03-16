@@ -23,7 +23,11 @@ const {
 } = require('../src/commands/daemons');
 
 let processed = false;
-program.description('Manage long-running services (daemons). This command requires the installation or "rancher-compose".');
+program.description(`
+  Manage long-running services (daemons). 
+  This command requires the installation or "rancher-compose" v0.12.5:
+  https://github.com/rancher/rancher-compose/releases/tag/v0.12.5
+`);
 
 // Generate Project
 program
