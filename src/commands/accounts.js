@@ -130,3 +130,44 @@ module.exports.DeactivateUserCommand = class DeactivateUserCommand {
         });
     }
 };
+
+module.exports.ActivateUserCommand = class ActivateUserCommand {
+
+    constructor(program) {
+        this.program = program;
+    }
+
+    execute(username, options) {
+        const profile = loadProfile(options.profile);
+        debug('%s.activateUser(%s)', profile.name, username);
+
+        const accounts = new Accounts(profile.url);
+        accounts.activateUser(profile.token, username).then((response) => {
+            if (response.success) {
+                if (options.json) {
+                    printSuccess(response.result);
+                }
+                else {
+                    let tableSpec = [
+                        { column: 'Id', field: 'id', width: 30 },
+                        { column: 'Username', field: 'username', width: 15 },
+                        { column: 'Password', field: 'password', width: 15 },
+                        { column: 'Last', field: 'last', width: 15 },
+                        { column: 'First', field: 'first', width: 15 },
+                        { column: 'Email', field: 'email', width: 35 },
+                        { column: 'Active', field: 'active', width: 15 },
+                        { column: 'JWT', field: 'jwt', width: 30 }
+                    ];
+                    printTable(tableSpec, response.result);
+                }
+
+            }
+            else {
+                printError(`Failed to activate user: ${username}, ${response.status} ${response.message}`, options);
+            }
+        })
+            .catch((err) => {
+                printError(`Failed to activate user: ${username}, ${err.status} ${err.message}`, options);
+            });
+    }
+};

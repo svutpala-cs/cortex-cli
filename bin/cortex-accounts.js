@@ -21,7 +21,8 @@ const chalk = require('chalk');
 const {
     InviteUsersCommand,
     GetInvitedUsersCommand,
-    DeactivateUserCommand
+    DeactivateUserCommand,
+    ActivateUserCommand
 } = require('../src/commands/accounts');
 
 let processed = false;
@@ -71,6 +72,23 @@ program
     .action((username, options) => {
         try {
             new DeactivateUserCommand(program).execute(username, options);
+            processed = true;
+        }
+        catch (err) {
+            console.error(chalk.red(err.message));
+        }
+    });
+
+// Activate user account for current tenant
+program
+    .command('activate-user <username>')
+    .description('Activate user account for current tenant')
+    .option('--color [on/off]', 'Turn on/off color output.', 'on')
+    .option('--profile [profile]', 'The profile to use')
+    .option('--json', 'Output results using JSON')
+    .action((username, options) => {
+        try {
+            new ActivateUserCommand(program).execute(username, options);
             processed = true;
         }
         catch (err) {

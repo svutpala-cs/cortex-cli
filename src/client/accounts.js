@@ -69,4 +69,19 @@ module.exports = class Accounts {
             });
     }
 
+    activateUser(token, username) {
+        const endpoint = `${this.endpoint}/tenants/users/${username}/activate`;
+        console.log(endpoint);
+        debug('activateUser => %s', endpoint);
+        return request
+            .put(endpoint)
+            .set('Authorization', `Bearer ${token}`)
+            .then((res) => {
+                if (res.ok) {
+                    return {success: true, result: res.body};
+                }
+                return {success: false, status: res.status, message: res.body};
+            });
+    }
+
 };
