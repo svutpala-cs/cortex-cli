@@ -18,12 +18,12 @@
 
 const program = require('commander');
 const chalk = require('chalk');
-const {InviteUsersCommand} = require('../src/commands/accounts');
+const {InviteUsersCommand, GetInvitedUsersCommand} = require('../src/commands/accounts');
 
 let processed = false;
 program.description('Work with Cortex Accounts');
 
-// Invite Tenanat user list to register
+// Invite Tenant user list to register
 program
     .command('invite-users <userDefinitionList>')
     .description('Invite tenant user list to register for Studio')
@@ -32,6 +32,24 @@ program
     .action((userDefinitionList, options) => {
         try {
             new InviteUsersCommand(program).execute(userDefinitionList, options);
+            processed = true;
+        }
+        catch (err) {
+            console.error(chalk.red(err.message));
+        }
+    });
+
+
+// Get this tenant's list of invited users to register for Studio
+program
+    .command('get-invited-users')
+    .description('Get this tenant\'s list of invited users to register for Studio')
+    .option('--color [on/off]', 'Turn on/off color output.', 'on')
+    .option('--profile [profile]', 'The profile to use')
+    .option('--json', 'Output results using JSON')
+    .action((options) => {
+        try {
+            new GetInvitedUsersCommand(program).execute(options);
             processed = true;
         }
         catch (err) {

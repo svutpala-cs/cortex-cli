@@ -21,15 +21,31 @@ module.exports = class Accounts {
 
     constructor(cortexUrl) {
         this.cortexUrl = cortexUrl;
+        this.endpoint = `${cortexUrl}/v2`;
     }
 
     inviteUser(token, userDefinitionList) {
-        const endpoint = `${this.cortexUrl}/tenants/users/invite`;
+        const endpoint = `${this.endpoint}/tenants/users/invite`;
         debug('inviteUser => %s', endpoint);
         return request
             .post(endpoint)
             .set('Authorization', `Bearer ${token}`)
             .send(userDefinitionList)
+            .then((res) => {
+                if (res.ok) {
+                    return {success: true, result: res.body};
+                }
+                return {success: false, status: res.status, message: res.body};
+            });
+    }
+
+    getInvitedUsers(token) {
+        const endpoint = `${this.endpoint}/tenants/users`;
+        debug('inviteUser => %s', endpoint);
+        return request
+            .get(endpoint)
+            .set('Authorization', `Bearer ${token}`)
+            .type('json')
             .then((res) => {
                 if (res.ok) {
                     return {success: true, result: res.body};

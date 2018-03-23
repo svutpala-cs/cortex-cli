@@ -48,3 +48,44 @@ module.exports.InviteUsersCommand = class InviteUsersCommand {
             });
     }
 };
+
+module.exports.GetInvitedUsersCommand = class GetInvitedUsersCommand {
+
+    constructor(program) {
+        this.program = program;
+    }
+
+    execute(options) {
+        const profile = loadProfile(options.profile);
+        debug('%s.getInvitedUsers(%s)', profile.name);
+
+        const accounts = new Accounts(profile.url);
+        accounts.getInvitedUsers(profile.token).then((response) => {
+            if (response.success) {
+                if (options.json) {
+                    printSuccess(JSON.stringify(response.result, null, 2));
+                }
+                else {
+                    let tableSpec = [
+                        { column: 'Id', field: '_id', width: 30 },
+                        { column: 'Tenant', field: 'tenant', width: 15 },
+                        { column: 'Username', field: 'username', width: 15 },
+                        { column: 'Last', field: 'last', width: 15 },
+                        { column: 'First', field: 'first', width: 15 },
+                        { column: 'Email', field: 'email', width: 35 },
+                        { column: 'Active', field: 'active', width: 15 },
+                        { column: 'Upsert Date', field: 'upsert_date', width: 30 }
+                    ];
+                    printTable(tableSpec, response.result);
+                }
+
+            }
+            else {
+                printError(`Failed to fetch invited users: ${response.status} ${response.message}`, options);
+            }
+        })
+        .catch((err) => {
+            printError(`Failed to fetch invited users: ${err.status} ${err.message}`, options);
+        });
+    }
+};
