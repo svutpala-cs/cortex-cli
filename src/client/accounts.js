@@ -56,8 +56,7 @@ module.exports = class Accounts {
 
     deactivateUser(token, username) {
         const endpoint = `${this.endpoint}/tenants/users/${username}/deactivate`;
-        console.log(endpoint);
-        debug('deactivateUser => %s', endpoint);
+        debug('deactivateUser(%s) => %s', username, endpoint);
         return request
             .put(endpoint)
             .set('Authorization', `Bearer ${token}`)
@@ -71,10 +70,23 @@ module.exports = class Accounts {
 
     activateUser(token, username) {
         const endpoint = `${this.endpoint}/tenants/users/${username}/activate`;
-        console.log(endpoint);
-        debug('activateUser => %s', endpoint);
+        debug('activateUser(%s) => %s', username, endpoint);
         return request
             .put(endpoint)
+            .set('Authorization', `Bearer ${token}`)
+            .then((res) => {
+                if (res.ok) {
+                    return {success: true, result: res.body};
+                }
+                return {success: false, status: res.status, message: res.body};
+            });
+    }
+
+    unregisterUser(token, username) {
+        const endpoint = `${this.endpoint}/tenants/users/${username}/unregister`;
+        debug('unregisterUser(%s) => %s', username, endpoint);
+        return request
+            .delete(endpoint)
             .set('Authorization', `Bearer ${token}`)
             .then((res) => {
                 if (res.ok) {

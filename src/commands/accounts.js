@@ -171,3 +171,44 @@ module.exports.ActivateUserCommand = class ActivateUserCommand {
             });
     }
 };
+
+module.exports.UnregisterUserCommand = class UnregisterUserCommand {
+
+    constructor(program) {
+        this.program = program;
+    }
+
+    execute(username, options) {
+        const profile = loadProfile(options.profile);
+        debug('%s.unregisterUser(%s)', profile.name, username);
+
+        const accounts = new Accounts(profile.url);
+        accounts.unregisterUser(profile.token, username).then((response) => {
+            if (response.success) {
+                if (options.json) {
+                    printSuccess(response.result);
+                }
+                else {
+                    let tableSpec = [
+                        { column: 'Id', field: 'id', width: 30 },
+                        { column: 'Username', field: 'username', width: 15 },
+                        { column: 'Password', field: 'password', width: 15 },
+                        { column: 'Last', field: 'last', width: 15 },
+                        { column: 'First', field: 'first', width: 15 },
+                        { column: 'Email', field: 'email', width: 35 },
+                        { column: 'Active', field: 'active', width: 15 },
+                        { column: 'JWT', field: 'jwt', width: 30 }
+                    ];
+                    printTable(tableSpec, response.result);
+                }
+
+            }
+            else {
+                printError(`Failed to unregister user: ${username}, ${response.status} ${response.message}`, options);
+            }
+        })
+            .catch((err) => {
+                printError(`Failed to unregister user: ${username}, ${err.status} ${err.message}`, options);
+            });
+    }
+};

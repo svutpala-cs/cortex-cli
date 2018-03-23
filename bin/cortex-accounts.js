@@ -22,7 +22,8 @@ const {
     InviteUsersCommand,
     GetInvitedUsersCommand,
     DeactivateUserCommand,
-    ActivateUserCommand
+    ActivateUserCommand,
+    UnregisterUserCommand
 } = require('../src/commands/accounts');
 
 let processed = false;
@@ -89,6 +90,23 @@ program
     .action((username, options) => {
         try {
             new ActivateUserCommand(program).execute(username, options);
+            processed = true;
+        }
+        catch (err) {
+            console.error(chalk.red(err.message));
+        }
+    });
+
+// De-provision user account for current tenant
+program
+    .command('unregister-user <username>')
+    .description('De-provision user account for current tenant')
+    .option('--color [on/off]', 'Turn on/off color output.', 'on')
+    .option('--profile [profile]', 'The profile to use')
+    .option('--json', 'Output results using JSON')
+    .action((username, options) => {
+        try {
+            new UnregisterUserCommand(program).execute(username, options);
             processed = true;
         }
         catch (err) {
