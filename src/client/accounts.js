@@ -53,4 +53,20 @@ module.exports = class Accounts {
                 return {success: false, status: res.status, message: res.body};
             });
     }
+
+    deactivateUser(token, username) {
+        const endpoint = `${this.endpoint}/tenants/users/${username}/deactivate`;
+        console.log(endpoint);
+        debug('deactivateUser => %s', endpoint);
+        return request
+            .put(endpoint)
+            .set('Authorization', `Bearer ${token}`)
+            .then((res) => {
+                if (res.ok) {
+                    return {success: true, result: res.body};
+                }
+                return {success: false, status: res.status, message: res.body};
+            });
+    }
+
 };
