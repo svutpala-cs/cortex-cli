@@ -152,8 +152,7 @@ module.exports.DescribeTask = class DescribeTask {
                         { column: 'Started At', field: 'startedAt', width: 20 },
                         { column: 'Stopped At', field: 'stoppedAt', width: 20 }
                     ];
-                    const resp = prettifyTimestamp([response.result]);
-                    printTable(tableSpec, resp);
+                    printTable(tableSpec, [response.result]);
                 }
             }
             else {

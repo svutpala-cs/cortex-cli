@@ -61,6 +61,9 @@ function _extractValues(fields, obj) {
 }
 
 module.exports.printTable = function(spec, objects, transform) {
+    // Prettifies all timestamp values
+    prettifyTimestamp(objects);
+
     transform = transform || function (obj) { return obj; };
 
     const head = spec.map((s) => s.column);
@@ -89,18 +92,21 @@ module.exports.exportDoc = function(program){
     process.exit(0);
 };
 
-module.exports.prettifyTimestamp = function(objects, fields) {
+const prettifyTimestamp = function(objects) {
+    // TODO: Is this a correct assumption to make? i.e minDate == "2017-01-01" ?
+    // I'm trying to generalise this function so as to be able to use it with every
+    // call of `printTable`.
+    // If not, we could pass a list of `timestamp` related fields and only convert those.
+    // Disadvantage of passing fields: Developer has to call this function everywhere
+    // wherever `timestamp` related fields are present.
+    const minDateTimestamp = new Date('2017-01-01').getTime();
     const prettify = function(object) {
-        let newSpec = {};
         for (let key in object) {
-            if ((new Date(object[key])).getTime() > 0) {
-                newSpec[key] = new Date(object[key]).toLocaleString();
-            }
-            else {
-                newSpec[key] = object[key];
+            if ((new Date(object[key])).getTime() > minDateTimestamp) {
+                object[key] = new Date(object[key]).toLocaleString();
             }
         }
-        return newSpec;
+        return object;
     };
     return objects.map( a => prettify(a) );
 };
