@@ -88,3 +88,19 @@ module.exports.exportDoc = function(program){
     }))));
     process.exit(0);
 };
+
+module.exports.prettifyTimestamp = function(objects, fields) {
+    const prettify = function(object) {
+        let newSpec = {};
+        for (let key in object) {
+            if ((new Date(object[key])).getTime() > 0) {
+                newSpec[key] = new Date(object[key]).toLocaleString();
+            }
+            else {
+                newSpec[key] = object[key];
+            }
+        }
+        return newSpec;
+    };
+    return objects.map( a => prettify(a) );
+};

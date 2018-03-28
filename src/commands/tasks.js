@@ -18,7 +18,7 @@ const fs = require('fs');
 const debug = require('debug')('cortex:cli');
 const { loadProfile } = require('../config');
 const Tasks = require('../client/tasks');
-const { printSuccess, printError, filterObject, parseObject, printTable } = require('./utils');
+const { printSuccess, printError, filterObject, parseObject, printTable, prettifyTimestamp } = require('./utils');
 
 module.exports.ListTasks = class ListTasks {
 
@@ -148,11 +148,12 @@ module.exports.DescribeTask = class DescribeTask {
                     let tableSpec = [
                         { column: 'Id', field: 'id', width: 40 },
                         { column: 'Status', field: 'status', width: 15 },
-                        { column: 'Created At', field: 'createdAt', width: 15 },
-                        { column: 'Started At', field: 'startedAt', width: 15 },
-                        { column: 'Stopped At', field: 'stoppedAt', width: 15 }
+                        { column: 'Created At', field: 'createdAt', width: 20 },
+                        { column: 'Started At', field: 'startedAt', width: 20 },
+                        { column: 'Stopped At', field: 'stoppedAt', width: 20 }
                     ];
-                    printTable(tableSpec, [response.result]);
+                    const resp = prettifyTimestamp([response.result]);
+                    printTable(tableSpec, resp);
                 }
             }
             else {
