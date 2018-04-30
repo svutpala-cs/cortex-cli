@@ -15,12 +15,13 @@
  */
 
 const fs = require('fs');
+const _ = require('lodash/object');
 const yeoman = require('yeoman-environment');
 const debug = require('debug')('cortex:cli');
 const { loadProfile } = require('../config');
 const Connections = require('../client/connections');
 const Content = require('../client/content');
-const { printSuccess, printError, filterObject, parseObject, printTable } = require('./utils');
+const { printSuccess, printError, filterObject, parseObject, printTable, readFileOrStdin } = require('./utils');
 
 module.exports.ListConnections = class ListConnections {
 
@@ -73,7 +74,7 @@ module.exports.SaveConnectionCommand = class SaveConnectionCommand {
     }
 
    getParamsValue(connectionDefinition, paramName) {
-       const results = connectionDefinition.params.filter(item => item.name === paramName);
+       const results = _.get(connectionDefinition,'params',[]).filter(item => item.name === paramName);
        if (results && results.length) {
             return results[0]['value'];
 
@@ -86,29 +87,47 @@ module.exports.SaveConnectionCommand = class SaveConnectionCommand {
        return params.filter(item => item.name !== 'jdbc_jar_file');
    }
 
-   execute(connectionDefinition, options) {
+   execute(file, options) {
        const profile = loadProfile(options.profile);
-       debug('%s.executeSaveDefinition(%s)', profile.name, connectionDefinition);
+       return readFileOrStdin(file).then((connDefStr) => {
+//       debug('%s.executeSaveDefinition(%s)', profile.name, connectionDefinition);
 
-       const connDefStr = fs.readFileSync(connectionDefinition);
-       const connObj = parseObject(connDefStr, options);
-       debug('%o', connObj);
+           const connObj = parseObject(connDefStr, options);
+           debug('%o', connObj);
 
-       const jdbcJarFilePath = this.getParamsValue(connObj, 'jdbc_jar_file');
-       const contentKey = this.getParamsValue(connObj, 'managed_content_key');
+           const jdbcJarFilePath = this.getParamsValue(connObj, 'jdbc_jar_file');
+           const contentKey = this.getParamsValue(connObj, 'managed_content_key');
 
-       if (jdbcJarFilePath && !jdbcJarFilePath.includes("--Insert jar file path--")) {
-           const content = new Content(profile.url);
-           const connection = new Connections(profile.url);
+           if (jdbcJarFilePath && !jdbcJarFilePath.includes("--Insert jar file path--")) {
+               const content = new Content(profile.url);
+               const connection = new Connections(profile.url);
 
-           const payload = {'content': jdbcJarFilePath, 'key': contentKey};
+               const payload = {'content': jdbcJarFilePath, 'key': contentKey};
 
-           content.uploadContent(profile.token, payload).then((response) => {
+               content.uploadContent(profile.token, payload).then((response) => {
 
-               let marshaledConnObj = connObj;
-               marshaledConnObj.params = this.stripJarPathFromParams(marshaledConnObj.params);
+                   let marshaledConnObj = connObj;
+                   marshaledConnObj.params = this.stripJarPathFromParams(marshaledConnObj.params);
 
-               connection.saveConnection(profile.token, marshaledConnObj).then((response) => {
+                   connection.saveConnection(profile.token, marshaledConnObj).then((response) => {
+                       if (response.success) {
+                           printSuccess(`Connection saved`, options);
+                       }
+                       else {
+                           printError(`Failed to save connection: ${response.status} ${response.message}`, options);
+                       }
+                   })
+                       .catch((err) => {
+                           printError(`Failed to save connection: ${err.response.body.message}`, options);
+                       });
+               })
+                   .catch((err) => {
+                       printError(`Failed to upload jdbc jar: ${err.status} ${err.message}`, options);
+                   });
+           } else {
+
+               const connection = new Connections(profile.url);
+               connection.saveConnection(profile.token, connObj).then((response) => {
                    if (response.success) {
                        printSuccess(`Connection saved`, options);
                    }
@@ -116,28 +135,12 @@ module.exports.SaveConnectionCommand = class SaveConnectionCommand {
                        printError(`Failed to save connection: ${response.status} ${response.message}`, options);
                    }
                })
-               .catch((err) => {
-                   printError(`Failed to save connection: ${err.response.body.message}`, options);
-               });
-           })
-           .catch((err) => {
-               printError(`Failed to upload jdbc jar: ${err.status} ${err.message}`, options);
-           });
-       } else {
-
-           const connection = new Connections(profile.url);
-           connection.saveConnection(profile.token, connObj).then((response) => {
-               if (response.success) {
-                   printSuccess(`Connection saved`, options);
-               }
-               else {
-                   printError(`Failed to save connection: ${response.status} ${response.message}`, options);
-               }
-           })
-           .catch((err) => {
-               printError(`Failed to save connection: ${err.response.body.message}`, options);
-           });
-       }
+                   .catch((err) => {
+                       printError(`Failed to save connection: ${err.response.body.message}`, options);
+                   });
+           }
+       })
+           .catch((err)=>console.log(err));
    }
 };
 

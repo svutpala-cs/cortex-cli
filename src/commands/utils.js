@@ -17,8 +17,10 @@
 const chalk = require('chalk');
 const jmsepath = require('jmespath');
 const yaml = require('js-yaml');
+const fs = require('fs');
 const debug = require('debug')('cortex:cli');
 const Table = require('cli-table');
+const getStdin = require('get-stdin');
 
 module.exports.constructError = function(error) {
     const errorText = JSON.parse(error.response.text);
@@ -68,6 +70,20 @@ function _extractValues(fields, obj) {
     const rv = [];
     fields.forEach((f) => rv.push((obj !== undefined && obj !== null && obj[f] !== undefined && obj[f] !== null)? obj[f].toString() : '-'));
     return rv;
+}
+
+module.exports.readFileOrStdin = async function(path) {
+    let res;
+    if (!path) {
+        res = await getStdin.buffer();
+    } else if (fs.existsSync(path)){
+        res = await fs.readFile(path,"utf8");
+    }else{
+        res = path;
+    }
+    if (!res)
+        throw new Error("No file or stdin provided");
+    return res;
 }
 
 module.exports.printTable = function(spec, objects, transform) {
